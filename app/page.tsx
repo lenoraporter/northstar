@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Brain, Target } from 'lucide-react';
+import { useLocalStorage } from '@/app/hooks/useLocalStorage';
 
 // Define our Task type
 type Task = {
@@ -16,24 +17,26 @@ type Task = {
   goalAligned?: string;
 };
 
+const initialTasks: Task[] = [
+  {
+    id: '1',
+    title: 'Morning Run',
+    completed: false,
+    alignment: 90,
+    goalAligned: 'Marathon Training',
+  },
+  {
+    id: '2',
+    title: 'Team Meeting',
+    completed: false,
+    alignment: 45,
+    goalAligned: 'Career Growth',
+  },
+];
+
 export default function Home() {
-  // State for tasks and input
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Morning Run',
-      completed: false,
-      alignment: 90,
-      goalAligned: 'Marathon Training',
-    },
-    {
-      id: '2',
-      title: 'Team Meeting',
-      completed: false,
-      alignment: 45,
-      goalAligned: 'Career Growth',
-    },
-  ]);
+  // Replace useState with useLocalStorage
+  const [tasks, setTasks] = useLocalStorage<Task[]>('tasks', initialTasks);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   // Add new task
@@ -45,7 +48,7 @@ export default function Home() {
       id: Date.now().toString(),
       title: newTaskTitle,
       completed: false,
-      alignment: 0, // We'll implement AI alignment later
+      alignment: 0,
     };
 
     setTasks([...tasks, newTask]);
@@ -64,6 +67,11 @@ export default function Home() {
   // Delete task
   const deleteTask = (taskId: string) => {
     setTasks(tasks.filter((task) => task.id !== taskId));
+  };
+
+  // Clear all completed tasks
+  const clearCompleted = () => {
+    setTasks(tasks.filter((task) => !task.completed));
   };
 
   return (
@@ -128,6 +136,20 @@ export default function Home() {
           </Card>
         ))}
       </div>
+
+      {/* Task Actions */}
+      {tasks.length > 0 && (
+        <div className="mt-4 flex justify-between items-center">
+          <div className="text-sm text-gray-500">
+            {tasks.filter((t) => !t.completed).length} tasks remaining
+          </div>
+          {tasks.some((t) => t.completed) && (
+            <Button variant="outline" size="sm" onClick={clearCompleted}>
+              Clear completed
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Empty State */}
       {tasks.length === 0 && (
