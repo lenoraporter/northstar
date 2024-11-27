@@ -90,75 +90,22 @@ const initialGoals: Goal[] = [
 
 // Add a function to analyze task-goal alignment
 const analyzeTaskAlignment = async (taskTitle: string, goals: Goal[]) => {
-  if (goals.length === 0) {
+  try {
+    const response = await fetch('/api/analyze-alignment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ taskTitle, goals }),
+    });
+
+    const data = await response.json();
+    console.log('Alignment data:', data); // Debug log
+    return data;
+  } catch (error) {
+    console.error('Error analyzing alignment:', error);
     return { alignments: [] };
   }
-
-  const alignments: AlignmentDetails[] = goals.map((goal) => {
-    const taskLower = taskTitle.toLowerCase();
-    const goalLower = goal.title.toLowerCase();
-    const goalDescLower = goal.description?.toLowerCase() || '';
-
-    // Define keywords based on goal title
-    let keywords = {
-      direct: [],
-      strong: [],
-      moderate: [],
-      light: [],
-    };
-
-    // Set keywords based on goal type
-    if (goalLower.includes('marathon') || goalLower.includes('running')) {
-      keywords = {
-        direct: ['run', 'running', 'marathon', 'training'],
-        strong: ['shoes', 'hydration', 'stretching', 'recovery'],
-        moderate: ['workout', 'exercise', 'fitness', 'strength'],
-        light: ['sleep', 'nutrition', 'diet', 'rest'],
-      };
-    } else if (
-      goalLower.includes('javascript') ||
-      goalLower.includes('programming')
-    ) {
-      keywords = {
-        direct: ['javascript', 'js', 'code', 'programming', 'react', 'node'],
-        strong: ['study', 'learn', 'course', 'tutorial'],
-        moderate: ['documentation', 'reading', 'practice'],
-        light: ['computer', 'setup', 'planning'],
-      };
-    }
-    // Add more goal-specific keywords as needed
-
-    let score = 0;
-    let explanation = '';
-
-    if (keywords.direct.some((keyword) => taskLower.includes(keyword))) {
-      score = 100;
-      explanation = `This task is a core activity for your ${goal.title} goal`;
-    } else if (keywords.strong.some((keyword) => taskLower.includes(keyword))) {
-      score = 85;
-      explanation = `This task is essential preparation for your ${goal.title} goal`;
-    } else if (
-      keywords.moderate.some((keyword) => taskLower.includes(keyword))
-    ) {
-      score = 70;
-      explanation = `This task supports your ${goal.title} goal through complementary activities`;
-    } else if (keywords.light.some((keyword) => taskLower.includes(keyword))) {
-      score = 40;
-      explanation = `This task indirectly benefits your ${goal.title} goal`;
-    } else {
-      score = 0;
-      explanation = `This task doesn't seem to align with your ${goal.title} goal`;
-    }
-
-    return {
-      goalId: goal.id,
-      score,
-      explanation,
-    };
-  });
-
-  // Only return alignments with scores > 0
-  return { alignments: alignments.filter((a) => a.score > 0) };
 };
 
 // Add this function near the top with other helper functions
@@ -500,7 +447,7 @@ export default function Home() {
                         <div className="flex items-center gap-2">
                           <div className="font-medium">{task.title}</div>
                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                            100% aligned
+                            {task.alignments?.[0]?.score || 0}% aligned
                           </span>
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(
