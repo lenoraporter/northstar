@@ -1,11 +1,13 @@
 import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function POST(req: Request) {
+export async function POST(req: any) {
   const { task, goals } = await req.json();
 
   try {

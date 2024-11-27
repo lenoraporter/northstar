@@ -1,4 +1,8 @@
-const analyzeAlignment = async (task: string) => {
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+const analyzeAlignment = async (
+  task: string,
+  goals: { id: string; title: string; timeframe: string }[]
+) => {
   try {
     const response = await fetch('/api/analyze-alignment', {
       method: 'POST',
@@ -7,7 +11,7 @@ const analyzeAlignment = async (task: string) => {
       },
       body: JSON.stringify({
         taskTitle: task,
-        goals: goals, // Your goals array
+        goals: goals,
       }),
     });
 

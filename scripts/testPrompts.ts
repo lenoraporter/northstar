@@ -1,4 +1,4 @@
-import { comparePrompts } from '../utils/promptTesting';
+import { comparePrompts } from '@/app/utils/promptTesting';
 
 async function main() {
   console.log('Starting prompt testing...');

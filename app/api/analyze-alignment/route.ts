@@ -21,8 +21,9 @@ export async function POST(req: Request) {
     }
 
     const alignments = await Promise.all(
-      goals.map(async (goal) => {
-        const prompt = `
+      goals.map(
+        async (goal: { id: string; title: string; timeframe: string }) => {
+          const prompt = `
 Evaluate how directly this task contributes to achieving the specified goal.
 
 TASK: "${taskTitle}"
@@ -46,33 +47,34 @@ Score: [0-100]
 Explanation: [Brief explanation of the score]
 `;
 
-        const response = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a strict goal alignment analyzer. Evaluate tasks based solely on their direct contribution to achieving the specified goal. Be conservative with scores.',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          temperature: 0.1,
-        });
+          const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'You are a strict goal alignment analyzer. Evaluate tasks based solely on their direct contribution to achieving the specified goal. Be conservative with scores.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.1,
+          });
 
-        const result = response.choices[0].message.content?.trim() || '';
-        const scoreMatch = result.match(/Score: (\d+)/);
-        const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
-        const explanation = result.replace(/Score: \d+/, '').trim();
+          const result = response.choices[0].message.content?.trim() || '';
+          const scoreMatch = result.match(/Score: (\d+)/);
+          const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+          const explanation = result.replace(/Score: \d+/, '').trim();
 
-        return {
-          goalId: goal.id,
-          score,
-          explanation,
-        };
-      })
+          return {
+            goalId: goal.id,
+            score,
+            explanation,
+          };
+        }
+      )
     );
 
     return NextResponse.json({
