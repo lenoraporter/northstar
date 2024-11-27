@@ -99,33 +99,50 @@ const analyzeTaskAlignment = async (taskTitle: string, goals: Goal[]) => {
     const goalLower = goal.title.toLowerCase();
     const goalDescLower = goal.description?.toLowerCase() || '';
 
-    // Direct alignment keywords (core activities)
-    const directKeywords = ['run', 'running', 'marathon', 'training'];
+    // Define keywords based on goal title
+    let keywords = {
+      direct: [],
+      strong: [],
+      moderate: [],
+      light: [],
+    };
 
-    // Strong support keywords (essential preparation)
-    const strongKeywords = ['shoes', 'hydration', 'stretching', 'recovery'];
-
-    // Moderate support keywords (complementary activities)
-    const moderateKeywords = ['workout', 'exercise', 'fitness', 'strength'];
-
-    // Light support keywords (indirect benefits)
-    const lightKeywords = ['sleep', 'nutrition', 'diet', 'rest'];
+    // Set keywords based on goal type
+    if (goalLower.includes('marathon') || goalLower.includes('running')) {
+      keywords = {
+        direct: ['run', 'running', 'marathon', 'training'],
+        strong: ['shoes', 'hydration', 'stretching', 'recovery'],
+        moderate: ['workout', 'exercise', 'fitness', 'strength'],
+        light: ['sleep', 'nutrition', 'diet', 'rest'],
+      };
+    } else if (
+      goalLower.includes('javascript') ||
+      goalLower.includes('programming')
+    ) {
+      keywords = {
+        direct: ['javascript', 'js', 'code', 'programming', 'react', 'node'],
+        strong: ['study', 'learn', 'course', 'tutorial'],
+        moderate: ['documentation', 'reading', 'practice'],
+        light: ['computer', 'setup', 'planning'],
+      };
+    }
+    // Add more goal-specific keywords as needed
 
     let score = 0;
     let explanation = '';
 
-    if (directKeywords.some((keyword) => taskLower.includes(keyword))) {
+    if (keywords.direct.some((keyword) => taskLower.includes(keyword))) {
       score = 100;
       explanation = `This task is a core activity for your ${goal.title} goal`;
-    } else if (strongKeywords.some((keyword) => taskLower.includes(keyword))) {
+    } else if (keywords.strong.some((keyword) => taskLower.includes(keyword))) {
       score = 85;
       explanation = `This task is essential preparation for your ${goal.title} goal`;
     } else if (
-      moderateKeywords.some((keyword) => taskLower.includes(keyword))
+      keywords.moderate.some((keyword) => taskLower.includes(keyword))
     ) {
       score = 70;
-      explanation = `This task supports your ${goal.title} goal through complementary training`;
-    } else if (lightKeywords.some((keyword) => taskLower.includes(keyword))) {
+      explanation = `This task supports your ${goal.title} goal through complementary activities`;
+    } else if (keywords.light.some((keyword) => taskLower.includes(keyword))) {
       score = 40;
       explanation = `This task indirectly benefits your ${goal.title} goal`;
     } else {
@@ -140,7 +157,8 @@ const analyzeTaskAlignment = async (taskTitle: string, goals: Goal[]) => {
     };
   });
 
-  return { alignments };
+  // Only return alignments with scores > 0
+  return { alignments: alignments.filter((a) => a.score > 0) };
 };
 
 // Add this function near the top with other helper functions
@@ -169,7 +187,7 @@ const detectTaskCategory = (taskTitle: string): string => {
   // Learning-related keywords
   if (
     taskLower.match(
-      /\b(study|learn|read|book|course|class|homework|research|practice|tutorial|lesson)\b/
+      /\b(study|learn|read|book|course|class|homework|research|practice|tutorial|lesson|react|javascript|programming|module)\b/
     )
   ) {
     category = 'Learning';
@@ -287,24 +305,23 @@ export default function Home() {
   };
 
   // Goal functions
-  const handleGoalSubmit = (e: React.FormEvent) => {
+  const handleGoalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!newGoal.title.trim()) return;
 
+    let updatedGoals;
     if (editingGoal) {
       // Update existing goal
-      setGoals(
-        goals.map((goal) =>
-          goal.id === editingGoal.id
-            ? {
-                ...goal,
-                title: newGoal.title,
-                timeframe: newGoal.timeframe,
-                description: newGoal.description,
-              }
-            : goal
-        )
+      updatedGoals = goals.map((goal) =>
+        goal.id === editingGoal.id
+          ? {
+              ...goal,
+              title: newGoal.title,
+              timeframe: newGoal.timeframe,
+              description: newGoal.description,
+            }
+          : goal
       );
     } else {
       // Add new goal
@@ -315,8 +332,23 @@ export default function Home() {
         description: newGoal.description,
         createdAt: new Date(),
       };
-      setGoals([...goals, goal]);
+      updatedGoals = [...goals, goal];
     }
+
+    // Update goals
+    setGoals(updatedGoals);
+
+    // Reanalyze all tasks with the updated goals
+    const updatedTasks = await Promise.all(
+      tasks.map(async (task) => {
+        const analysis = await analyzeTaskAlignment(task.title, updatedGoals);
+        return {
+          ...task,
+          alignments: analysis.alignments || [],
+        };
+      })
+    );
+    setTasks(updatedTasks);
 
     // Reset form
     setShowGoalModal(false);
@@ -466,13 +498,10 @@ export default function Home() {
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
-                          <div
-                            className={`font-medium ${
-                              task.completed ? 'line-through text-gray-500' : ''
-                            }`}
-                          >
-                            {task.title}
-                          </div>
+                          <div className="font-medium">{task.title}</div>
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                            100% aligned
+                          </span>
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(
                               task.category
@@ -482,7 +511,7 @@ export default function Home() {
                           </span>
                         </div>
                         {!editingTask && (
-                          <div className="mt-2 space-y-2">
+                          <div className="mt-1 space-y-2">
                             {task.alignments?.length > 0 ? (
                               task.alignments.map((alignment) => {
                                 const goal = goals.find(
@@ -493,34 +522,23 @@ export default function Home() {
                                     key={alignment.goalId}
                                     className="flex items-center gap-2 rounded-md p-2"
                                   >
-                                    <div className="flex-shrink-0">
-                                      <div
-                                        className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                          alignment.score >= 70
-                                            ? 'bg-green-100 text-green-700'
-                                            : alignment.score >= 40
-                                            ? 'bg-yellow-100 text-yellow-700'
-                                            : 'bg-gray-100 text-gray-700'
-                                        }`}
-                                      >
-                                        {alignment.score}%
-                                      </div>
-                                    </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className="text-sm font-medium truncate">
-                                        {goal?.title}
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {alignment.explanation}
+                                      <div className="text-sm text-gray-500">
+                                        This task is a core activity for{' '}
+                                        <span className="inline-flex items-center gap-1 bg-white border rounded-md px-2 py-0.5">
+                                          <Target className="w-3 h-3" />
+                                          {goal?.title}
+                                        </span>{' '}
                                       </div>
                                     </div>
-                                    {/* <Target className="w-4 h-4 text-purple-600 flex-shrink-0" /> */}
                                   </div>
                                 );
                               })
                             ) : (
-                              <div className="text-sm text-gray-500 italic">
-                                No goal alignments found
+                              <div className="text-sm">
+                                <div className="text-gray-500 italic">
+                                  No goal alignments found
+                                </div>
                               </div>
                             )}
                           </div>
