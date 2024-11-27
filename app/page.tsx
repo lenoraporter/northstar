@@ -491,7 +491,7 @@ export default function Home() {
                                 return (
                                   <div
                                     key={alignment.goalId}
-                                    className="flex items-center gap-2 bg-gray-50 rounded-md p-2"
+                                    className="flex items-center gap-2 rounded-md p-2"
                                   >
                                     <div className="flex-shrink-0">
                                       <div
@@ -514,7 +514,7 @@ export default function Home() {
                                         {alignment.explanation}
                                       </div>
                                     </div>
-                                    <Target className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                                    {/* <Target className="w-4 h-4 text-purple-600 flex-shrink-0" /> */}
                                   </div>
                                 );
                               })
