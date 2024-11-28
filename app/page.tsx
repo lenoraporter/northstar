@@ -49,22 +49,7 @@ const categories = [
   'Other',
 ];
 
-const initialTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Morning Run',
-    completed: false,
-    category: 'Health',
-    alignments: [],
-  },
-  {
-    id: '2',
-    title: 'Team Meeting',
-    completed: false,
-    category: 'Work',
-    alignments: [],
-  },
-];
+const initialTasks: Task[] = [];
 
 // Add this Goal type and initialGoals
 type Goal = {
@@ -75,15 +60,7 @@ type Goal = {
   createdAt: Date;
 };
 
-const initialGoals: Goal[] = [
-  {
-    id: '1',
-    title: 'Run Marathon',
-    timeframe: '1year',
-    description: 'Complete first marathon under 4:30:00',
-    createdAt: new Date(),
-  },
-];
+const initialGoals: Goal[] = [];
 
 // Add a function to analyze task-goal alignment
 const analyzeTaskAlignment = async (taskTitle: string, goals: Goal[]) => {
