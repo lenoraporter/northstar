@@ -344,9 +344,6 @@ export default function Home() {
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
           />
-          <Button variant="outline" className="min-w-[120px]" disabled>
-            {newTaskTitle ? detectTaskCategory(newTaskTitle) : 'Category'}
-          </Button>
           <Button type="submit" disabled={isAnalyzing}>
             {isAnalyzing ? (
               <>
