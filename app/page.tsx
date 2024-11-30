@@ -335,168 +335,260 @@ export default function Home() {
   return (
     <main className="max-w-2xl mx-auto p-6">
       {/* Task Input Form */}
-      <form onSubmit={addTask} className="mb-6">
-        <div className="flex gap-2">
+      <form
+        onSubmit={addTask}
+        className="mb-8"
+        role="form"
+        aria-label="Add new task"
+      >
+        <div className="flex flex-col sm:flex-row gap-3">
           <Input
             type="text"
             placeholder="What do you need to do today?"
-            className="w-full p-4 text-lg"
+            className="w-full p-6 text-lg rounded-2xl"
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
+            aria-label="New task title"
+            required
           />
-          <Button type="submit" disabled={isAnalyzing}>
+          <Button
+            type="submit"
+            disabled={isAnalyzing}
+            className="w-full sm:w-auto p-6 text-lg rounded-2xl"
+            aria-busy={isAnalyzing}
+          >
             {isAnalyzing ? (
               <>
-                <span className="animate-spin mr-2">⚡</span>
+                <span className="animate-spin mr-2" aria-hidden="true">
+                  ⚡
+                </span>
                 Analyzing...
               </>
             ) : (
-              'Add'
+              'Add Task'
             )}
           </Button>
         </div>
       </form>
 
       {/* Category Filter */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-        <Button
-          variant={selectedCategory === null ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSelectedCategory(null)}
+      <nav
+        className="mb-6 -mx-4 px-4 sm:mx-0 sm:px-0"
+        aria-label="Task categories"
+      >
+        <div
+          className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide"
+          role="tablist"
+          aria-label="Filter tasks by category"
         >
-          All
-        </Button>
-        {categories.map((category) => (
           <Button
-            key={category}
-            variant={selectedCategory === category ? 'default' : 'outline'}
+            variant={selectedCategory === null ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setSelectedCategory(category)}
+            className="flex-none px-4 py-2 rounded-full"
+            onClick={() => setSelectedCategory(null)}
+            role="tab"
+            aria-selected={selectedCategory === null}
+            aria-controls="task-list"
           >
-            {category}
+            All Tasks
           </Button>
-        ))}
-      </div>
-
-      {/* Task List */}
-      <AnimatePresence>
-        <div className="space-y-3">
-          {filteredTasks.map((task) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -300 }}
-              transition={{ duration: 0.2 }}
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              size="sm"
+              className="flex-none px-4 py-2 rounded-full whitespace-nowrap"
+              onClick={() => setSelectedCategory(category)}
+              role="tab"
+              aria-selected={selectedCategory === category}
+              aria-controls="task-list"
             >
-              <Card className="p-4">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={task.completed}
-                    onCheckedChange={() => toggleTask(task.id)}
-                  />
-                  <div className="flex-1">
-                    {editingTask === task.id ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          className="flex-1"
-                          autoFocus
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              saveEdit(task.id);
-                            }
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => saveEdit(task.id)}
-                        >
-                          <Check className="w-4 h-4 text-green-500" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit}>
-                          <X className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">{task.title}</div>
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                            {task.alignments?.[0]?.score || 0}% aligned
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(
-                              task.category
-                            )}`}
-                          >
-                            {task.category}
-                          </span>
-                        </div>
-                        {!editingTask && (
-                          <div className="mt-1 space-y-2">
-                            {task.alignments?.length > 0 ? (
-                              task.alignments.map((alignment) => {
-                                const goal = goals.find(
-                                  (g) => g.id === alignment.goalId
-                                );
-                                return (
-                                  <div
-                                    key={alignment.goalId}
-                                    className="flex items-center gap-2 rounded-md p-2"
-                                  >
-                                    <div className="flex-1 min-w-0">
-                                      <div className="text-sm text-gray-500">
-                                        This task is a core activity for{' '}
-                                        <span className="inline-flex items-center gap-1 bg-white border rounded-md px-2 py-0.5">
-                                          <Target className="w-3 h-3" />
-                                          {goal?.title}
-                                        </span>{' '}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <div className="text-sm">
-                                <div className="text-gray-500 italic">
-                                  No goal alignments found
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  {editingTask !== task.id && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditing(task)}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteTask(task.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
+              {category}
+            </Button>
           ))}
         </div>
-      </AnimatePresence>
+      </nav>
+
+      {/* Task List */}
+      <main>
+        <h1 className="sr-only">Your Tasks</h1>
+        <AnimatePresence>
+          <div
+            className="space-y-6"
+            role="tabpanel"
+            id="task-list"
+            aria-label={`${selectedCategory || 'All'} tasks`}
+          >
+            {filteredTasks.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">
+                No tasks found in this category
+              </p>
+            ) : (
+              filteredTasks.map((task) => (
+                <motion.article
+                  key={task.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -300 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="p-5 sm:p-6">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-start gap-4">
+                        <Checkbox
+                          checked={task.completed}
+                          onCheckedChange={() => toggleTask(task.id)}
+                          className="mt-1.5"
+                          aria-label={`Mark "${task.title}" as ${
+                            task.completed ? 'incomplete' : 'complete'
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          {editingTask === task.id ? (
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <Input
+                                value={editingTitle}
+                                onChange={(e) =>
+                                  setEditingTitle(e.target.value)
+                                }
+                                className="flex-1"
+                                autoFocus
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    saveEdit(task.id);
+                                  }
+                                }}
+                                aria-label="Edit task title"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => saveEdit(task.id)}
+                                  className="flex-1 sm:flex-none"
+                                  aria-label="Save changes"
+                                >
+                                  <Check
+                                    className="w-4 h-4 text-green-500"
+                                    aria-hidden="true"
+                                  />
+                                  <span className="sr-only">Save changes</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={cancelEdit}
+                                  className="flex-1 sm:flex-none"
+                                  aria-label="Cancel editing"
+                                >
+                                  <X
+                                    className="w-4 h-4 text-red-500"
+                                    aria-hidden="true"
+                                  />
+                                  <span className="sr-only">
+                                    Cancel editing
+                                  </span>
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="space-y-3">
+                                <h2 className="font-medium text-lg sm:text-xl break-words leading-relaxed">
+                                  {task.title}
+                                </h2>
+                                <div
+                                  className="flex flex-wrap gap-2"
+                                  aria-label="Task metadata"
+                                >
+                                  <span className="text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+                                    {task.alignments?.[0]?.score || 0}% aligned
+                                  </span>
+                                  <span
+                                    className={`text-sm px-3 py-1 rounded-full ${getCategoryColor(
+                                      task.category
+                                    )}`}
+                                  >
+                                    {task.category}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {!editingTask && task.alignments?.length > 0 && (
+                                <div
+                                  className="mt-4 space-y-3"
+                                  aria-label="Task alignments"
+                                >
+                                  {task.alignments.map((alignment) => {
+                                    const goal = goals.find(
+                                      (g) => g.id === alignment.goalId
+                                    );
+                                    return (
+                                      <div
+                                        key={alignment.goalId}
+                                        className="flex items-center gap-3 bg-gray-50 rounded-xl p-4"
+                                        role="complementary"
+                                      >
+                                        <Target
+                                          className="w-4 h-4 flex-shrink-0"
+                                          aria-hidden="true"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm text-gray-600">
+                                            Core activity for{' '}
+                                            <span className="font-medium text-gray-900">
+                                              {goal?.title}
+                                            </span>
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {editingTask !== task.id && (
+                        <div
+                          className="flex gap-2 ml-11"
+                          role="group"
+                          aria-label="Task actions"
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditing(task)}
+                            className="flex-1 sm:flex-none text-gray-500 hover:text-gray-700"
+                          >
+                            <Pencil
+                              className="w-4 h-4 mr-2"
+                              aria-hidden="true"
+                            />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteTask(task.id)}
+                            className="flex-1 sm:flex-none text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4 mr-2" aria-hidden="true" />
+                            Delete
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </motion.article>
+              ))
+            )}
+          </div>
+        </AnimatePresence>
+      </main>
+
       {/* Task Actions */}
       {tasks.length > 0 && (
         <div className="mt-4 flex justify-between items-center">
@@ -554,57 +646,132 @@ export default function Home() {
       )}
 
       {/* Goals Section */}
-      <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Goals</h3>
+      <section className="mt-12 space-y-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl sm:text-2xl font-semibold">Goals</h2>
           <Button
             variant="outline"
             className="flex items-center gap-2"
             onClick={() => setShowGoalModal(true)}
           >
             <Target className="w-4 h-4" />
-            Add Goal
+            <span className="hidden sm:inline">Add Goal</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
 
-        <div className="space-y-3">
-          {goals.map((goal) => (
-            <Card key={goal.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">{goal.title}</h4>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {goal.description}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {goal.timeframe === '1year'
-                      ? '1 Year'
-                      : goal.timeframe === '3year'
-                      ? '3 Years'
-                      : '5 Years'}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => startEditingGoal(goal)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteGoal(goal.id)}
-                  >
-                    <X className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
+        {goals.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center p-8 rounded-xl border-2 border-dashed"
+          >
+            <div className="max-w-sm mx-auto space-y-4">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Target className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium">No goals yet</h3>
+                <p className="text-sm text-muted-foreground">
+                  Set your first goal to start tracking progress and aligning
+                  your tasks.
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowGoalModal(true)}
+                className="w-full sm:w-auto"
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Create your first goal
+              </Button>
+            </div>
+          </motion.div>
+        ) : (
+          <div className="grid gap-6 grid-cols-1">
+            {goals.map((goal) => (
+              <Card key={goal.id} className="flex flex-col h-full">
+                {/* Card Header */}
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-3 flex-1">
+                      {/* Title - full on desktop, truncated on mobile */}
+                      <h3 className="font-medium text-base sm:text-lg">
+                        <span className="sm:hidden line-clamp-2">
+                          {goal.title}
+                        </span>
+                        <span className="hidden sm:block">{goal.title}</span>
+                      </h3>
+
+                      {/* Description - full on desktop, truncated/hidden on mobile */}
+                      {goal.description && (
+                        <>
+                          <p className="sm:hidden text-sm text-muted-foreground line-clamp-2">
+                            {goal.description}
+                          </p>
+                          <p className="hidden sm:block text-sm text-muted-foreground">
+                            {goal.description}
+                          </p>
+                        </>
+                      )}
+
+                      {/* Metadata */}
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary">
+                          {goal.timeframe === '1year'
+                            ? '1 Year'
+                            : goal.timeframe === '3year'
+                            ? '3 Years'
+                            : '5 Years'}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          Created{' '}
+                          {new Date(goal.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEditingGoal(goal)}
+                        className="h-8 w-8 p-0"
+                        aria-label={`Edit ${goal.title}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteGoal(goal.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        aria-label={`Delete ${goal.title}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Progress Section - Optional */}
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium">Progress</div>
+                      <div className="text-sm text-muted-foreground">0%</div>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: '0%' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       <GoalModal
         show={showGoalModal}
