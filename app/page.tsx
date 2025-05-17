@@ -328,6 +328,18 @@ export default function Home() {
     ? tasks.filter((task) => task.category === selectedCategory)
     : tasks;
 
+  const getGoalProgress = (goalId: string) => {
+    // Only consider tasks with alignment >= 25 for this goal
+    const alignedTasks = tasks.filter((task) =>
+      task.alignments.some((a) => a.goalId === goalId && a.score >= 25)
+    );
+    if (alignedTasks.length === 0) return 0;
+    const completedAlignedTasks = alignedTasks.filter((task) => task.completed);
+    return Math.round(
+      (completedAlignedTasks.length / alignedTasks.length) * 100
+    );
+  };
+
   if (!isClient) {
     return null;
   }
@@ -519,31 +531,35 @@ export default function Home() {
                                   className="mt-4 space-y-3"
                                   aria-label="Task alignments"
                                 >
-                                  {task.alignments.map((alignment) => {
-                                    const goal = goals.find(
-                                      (g) => g.id === alignment.goalId
-                                    );
-                                    return (
-                                      <div
-                                        key={alignment.goalId}
-                                        className="flex items-center gap-3 bg-gray-50 rounded-xl p-4"
-                                        role="complementary"
-                                      >
-                                        <Target
-                                          className="w-4 h-4 flex-shrink-0"
-                                          aria-hidden="true"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-sm text-gray-600">
-                                            Core activity for{' '}
-                                            <span className="font-medium text-gray-900">
-                                              {goal?.title}
-                                            </span>
-                                          </p>
+                                  {task.alignments
+                                    .filter(
+                                      (alignment) => alignment.score >= 25
+                                    )
+                                    .map((alignment) => {
+                                      const goal = goals.find(
+                                        (g) => g.id === alignment.goalId
+                                      );
+                                      return (
+                                        <div
+                                          key={alignment.goalId}
+                                          className="flex items-center gap-3 bg-gray-50 rounded-xl p-4"
+                                          role="complementary"
+                                        >
+                                          <Target
+                                            className="w-4 h-4 flex-shrink-0"
+                                            aria-hidden="true"
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-gray-600">
+                                              Core activity for{' '}
+                                              <span className="font-medium text-gray-900">
+                                                {goal?.title}
+                                              </span>
+                                            </p>
+                                          </div>
                                         </div>
-                                      </div>
-                                    );
-                                  })}
+                                      );
+                                    })}
                                 </div>
                               )}
                             </>
@@ -757,12 +773,14 @@ export default function Home() {
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-medium">Progress</div>
-                      <div className="text-sm text-muted-foreground">0%</div>
+                      <div className="text-sm text-muted-foreground">
+                        {getGoalProgress(goal.id)}%
+                      </div>
                     </div>
                     <div className="mt-2 h-2 rounded-full bg-muted">
                       <div
                         className="h-full rounded-full bg-primary"
-                        style={{ width: '0%' }}
+                        style={{ width: `${getGoalProgress(goal.id)}%` }}
                       />
                     </div>
                   </div>
