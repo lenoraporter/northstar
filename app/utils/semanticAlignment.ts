@@ -1,6 +1,8 @@
 // Semantic alignment utility with comprehensive relationship patterns
 export type Goal = {
   title: string;
+  milestones: any[];
+  alignedTasks: any[];
   // Add other properties as needed
 };
 
