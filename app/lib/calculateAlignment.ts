@@ -1,3 +1,5 @@
+import type { GoalMilestone } from '../components/GoalActionsList';
+
 export function calculateTaskAlignment(
   taskTitle: string,
   milestone: GoalMilestone
