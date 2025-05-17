@@ -1,10 +1,18 @@
 // Semantic alignment utility with comprehensive relationship patterns
-export function findRelatedGoalForTask(taskTitle: string, goals: any[]) {
+export type Goal = {
+  title: string;
+  // Add other properties as needed
+};
+
+export function findRelatedGoalForTask(
+  taskTitle: string,
+  goals: Goal[]
+): Goal | null {
   // Convert task title to lowercase for matching
   const lowerTaskTitle = taskTitle.toLowerCase();
 
   // Store matches with their relevance scores
-  const matches: { goal: any; score: number }[] = [];
+  const matches: { goal: Goal; score: number }[] = [];
 
   // Check each goal for relevance
   for (const goal of goals) {
