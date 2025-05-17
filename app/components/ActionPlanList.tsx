@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pencil, Save, X, Plus, Trash } from 'lucide-react';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Accordion,
   AccordionContent,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle } from 'lucide-react';
+import type { GoalMilestone } from './GoalActionsList';
 
 interface ActionPlanListProps {
   milestones: GoalMilestone[];

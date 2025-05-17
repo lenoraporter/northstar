@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface GoalMilestone {
+export interface GoalMilestone {
   id: string;
   title: string;
   description: string;
