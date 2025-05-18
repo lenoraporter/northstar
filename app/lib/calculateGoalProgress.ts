@@ -1,3 +1,5 @@
+import type { Goal } from '../types/goal';
+
 type MilestoneProgress = {
   id: string;
   title: string;

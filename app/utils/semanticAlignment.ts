@@ -1,11 +1,6 @@
-// Semantic alignment utility with comprehensive relationship patterns
-export type Goal = {
-  title: string;
-  milestones: any[];
-  alignedTasks: any[];
-  // Add other properties as needed
-};
+import type { Goal } from '../types/goal';
 
+// Semantic alignment utility with comprehensive relationship patterns
 export function findRelatedGoalForTask(
   taskTitle: string,
   goals: Goal[]
